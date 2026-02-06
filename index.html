@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SILCS FragMaps Viewer - P38 MAP Kinase (3FLY)</title>
+    <meta name="description" content="Interactive 3D visualization of P38 MAP Kinase with SILCS FragMaps for structure-based drug design">
+    
+    <!-- Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧬</text></svg>">
+    
+    <!-- 3Dmol.js for molecular visualization -->
+    <script src="https://3Dmol.csb.pitt.edu/build/3Dmol-min.js"></script>
+    
+    <!-- Our custom styles -->
+    <link rel="stylesheet" href="styles/main.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="app-header">
+        <div class="header-left">
+            <a href="overview.html" class="back-link" title="Back to Overview">←</a>
+            <h1 class="app-title">SILCS FragMaps Viewer</h1>
+            <span class="protein-label">p38 MAP Kinase (3FLY)</span>
+        </div>
+        <nav class="header-nav">
+            <a href="overview.html" class="nav-link">Overview</a>
+            <a href="index.html" class="nav-link active">Viewer</a>
+        </nav>
+        <div class="header-right">
+            <button id="exportImage" class="btn-icon" title="Export Image">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>
+                </svg>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <div class="app-container">
+        <!-- 3D Viewer - Takes up most of the screen -->
+        <main class="viewer-container">
+            <div id="molstar-viewer"></div>
+            <div id="loadingOverlay" class="loading-overlay">
+                <div class="spinner"></div>
+                <p>Loading structure...</p>
+            </div>
+        </main>
+
+        <!-- Right Panel with Tabs -->
+        <aside class="control-panel">
+            <!-- Tab Navigation -->
+            <div class="tab-nav">
+                <button class="tab-button active" data-tab="fragmap">FragMap</button>
+                <button class="tab-button" data-tab="protein">Protein</button>
+                <button class="tab-button" data-tab="ligand">Ligand</button>
+            </div>
+
+            <!-- Tab Content -->
+            <div class="tab-content">
+                <!-- FragMap Tab -->
+                <div id="fragmap-tab" class="tab-pane active">
+                    <div class="control-group">
+                        <div class="control-actions">
+                            <button id="hideAllMaps" class="btn-compact">Hide all</button>
+                            <button id="resetView" class="btn-compact">Reset to defaults</button>
+                            <button id="focusBinding" class="btn-compact">Zoom</button>
+                        </div>
+                    </div>
+
+                    <div class="section-title">FragMap Surfaces</div>
+                    <div id="fragmapControls" class="fragmap-list">
+                        <!-- Dynamically populated -->
+                    </div>
+                </div>
+
+                <!-- Protein Tab -->
+                <div id="protein-tab" class="tab-pane">
+                    <div class="section-title">Protein Display</div>
+                    <div class="control-group">
+                        <label class="control-item">
+                            <input type="checkbox" id="showCartoon" checked>
+                            <span>Protein Cartoon</span>
+                        </label>
+                        <label class="control-item">
+                            <input type="checkbox" id="showSurface">
+                            <span>Protein Surface</span>
+                        </label>
+                        <label class="control-item">
+                            <input type="checkbox" id="showBackbone">
+                            <span>Backbone</span>
+                        </label>
+                    </div>
+
+                    <div class="section-title">Information</div>
+                    <div class="info-group">
+                        <div class="info-item">
+                            <span class="info-label">PDB ID:</span>
+                            <span class="info-value">3FLY</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Protein:</span>
+                            <span class="info-value">p38 MAP Kinase</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Ligand Tab -->
+                <div id="ligand-tab" class="tab-pane">
+                    <div class="section-title">Ligand Selection</div>
+                    <select id="ligandSelect" class="select-control">
+                        <option value="">Select ligand...</option>
+                        <option value="from_silcsbio/3fly_cryst_lig_posref.sdf">Crystal Ligand</option>
+                    </select>
+
+                    <div class="section-title">Display Options</div>
+                    <div class="control-group">
+                        <label class="control-item">
+                            <input type="checkbox" id="showLigandSticks" checked>
+                            <span>Show Sticks</span>
+                        </label>
+                        <label class="control-item">
+                            <input type="checkbox" id="showLigandBalls">
+                            <span>Show Ball & Stick</span>
+                        </label>
+                    </div>
+
+                    <div id="ligandInfo" class="info-group" style="display: none;">
+                        <div class="info-item">
+                            <span class="info-label">Current:</span>
+                            <span id="currentLigandName" class="info-value">None</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+    </div>
+
+    <!-- Load our JavaScript modules -->
+    <script type="module" src="src/main.js"></script>
+</body>
+</html>
