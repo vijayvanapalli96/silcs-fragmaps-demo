@@ -15,6 +15,8 @@ export class MolecularViewer {
         this.surfaceVisible = false;
         this.surfaceId = null;
         this.fragMaps = new Map();
+        this.showCartoon = true;
+        this.showBackbone = false;
     }
 
     /** Create and configure the 3Dmol.js viewer instance */
@@ -89,10 +91,8 @@ export class MolecularViewer {
     }
 
     toggleCartoon(show) {
-        if (this.viewer3d && this.proteinModel) {
-            this.proteinModel.setStyle({}, {cartoon: {color: 'spectrum', hidden: !show}});
-            this.viewer3d.render();
-        }
+        this.showCartoon = show;
+        this._updateProteinStyle();
     }
 
     toggleSurface(show) {
@@ -110,14 +110,24 @@ export class MolecularViewer {
     }
 
     toggleBackbone(show) {
-        if (this.viewer3d) {
-            if (show) {
-                this.viewer3d.addStyle({atom: ['CA', 'C', 'N', 'O']}, {line: {color: '#888888'}});
-            } else {
-                this.viewer3d.removeStyle({atom: ['CA', 'C', 'N', 'O']}, {line: {}});
-            }
-            this.viewer3d.render();
+        this.showBackbone = show;
+        this._updateProteinStyle();
+    }
+
+    /** Apply all active protein representations together to avoid style conflicts */
+    _updateProteinStyle() {
+        if (!this.viewer3d || !this.proteinModel) return;
+
+        const style = {};
+        if (this.showCartoon) {
+            style.cartoon = { color: 'spectrum' };
         }
+        if (this.showBackbone) {
+            style.stick = { color: '#999999', radius: 0.15 };
+        }
+
+        this.viewer3d.setStyle({ model: this.proteinModel }, style);
+        this.viewer3d.render();
     }
 
     setLigandStyle(style) {
