@@ -61,6 +61,9 @@ export class MolecularViewer {
             
             this.ligandModel = this.viewer3d.addModel(sdfData, 'sdf');
             this.ligandModel.setStyle({}, {stick: {colorscheme: 'greenCarbon'}});
+
+            // Zoom to ligand binding site with padding for FragMap context
+            this.viewer3d.zoomTo({model: this.ligandModel}, 300);
             this.viewer3d.render();
             
             this.ligandRef = true;
@@ -79,8 +82,8 @@ export class MolecularViewer {
     }
 
     async focusBindingSite() {
-        if (this.ligandRef && this.viewer3d) {
-            this.viewer3d.zoomTo({model: -1});
+        if (this.ligandRef && this.ligandModel && this.viewer3d) {
+            this.viewer3d.zoomTo({model: this.ligandModel}, 300);
             this.viewer3d.render();
         }
     }
