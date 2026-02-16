@@ -1,6 +1,5 @@
 /**
- * Configuration and Constants
- * All FragMap definitions and ligand lists
+ * Configuration - FragMap definitions, file paths, and ligand list
  */
 
 // Base FragMap type definitions (color scheme and properties)
@@ -23,9 +22,8 @@ export const FRAGMAP_CONFIG = {
 };
 
 /**
- * Dynamically detect available FragMaps from available files
- * This function should be called at runtime to populate FRAGMAPS
- * For static build, we provide the known list
+ * Attempt to detect FragMap files from server directory listing.
+ * Falls back to the static FRAGMAPS array on failure.
  */
 export async function detectFragMaps() {
     try {
@@ -55,9 +53,8 @@ export async function detectFragMaps() {
             }
         });
         
-        return fragmaps.length > 0 ? fragmaps : FRAGMAPS; // Fallback to static list
-    } catch (error) {
-        console.warn('Could not auto-detect FragMaps, using static list:', error);
+        return fragmaps.length > 0 ? fragmaps : FRAGMAPS;
+    } catch {
         return FRAGMAPS;
     }
 }

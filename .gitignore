@@ -37,3 +37,7 @@ build/
 # Environment variables
 .env
 .env.local
+
+silcs-fragmaps-demo/
+README.pdf
+data/

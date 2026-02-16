@@ -224,12 +224,12 @@
             <div class="info-grid">
                 <div class="info-card">
                     <h3>🔬 P38 MAP Kinase</h3>
-                    <p>P38 mitogen-activated protein kinase (p38 MAPK) is a critical enzyme involved in cellular stress responses, inflammation, and immune regulation. It plays a key role in diseases including rheumatoid arthritis, inflammatory bowel disease, and cancer, making it an important drug target. The crystal structure shown here (PDB: 3FLY) provides the foundation for understanding ligand binding.</p>
+                    <p>P38 mitogen-activated protein kinase (p38 MAPK) is a critical enzyme involved in cellular stress responses, inflammation, and immune regulation. It plays a key role in diseases including rheumatoid arthritis, inflammatory bowel disease, and cancer, making it an important drug target. The crystal structure shown here (PDB: 3FLY) captures the ATP-binding pocket in the kinase domain, including the conserved hinge region and the DFG motif — key features for inhibitor design.</p>
                 </div>
                 
                 <div class="info-card">
                     <h3>💊 Crystal Ligand & Poses</h3>
-                    <p>This demo includes the crystallographic ligand from PDB 3FLY along with 30 additional ligand poses refined using SILCS-MC (Monte Carlo). These poses have been optimized to align with favorable FragMap regions, demonstrating how SILCS guides ligand positioning for improved binding affinity predictions.</p>
+                    <p>This demo includes the crystallographic ligand from PDB 3FLY along with 30 additional ligand poses refined using SILCS-MC (Monte Carlo). SILCS-MC optimizes ligand placement by sampling poses that overlap favorably with FragMap densities, producing "posref" (pose-refined) coordinates. This aligns ligand functional groups with the most energetically favorable binding regions.</p>
                 </div>
                 
                 <div class="info-card">
@@ -249,7 +249,7 @@
     <section class="features-section">
         <div class="content-container">
             <h2 class="section-title">FragMap Types & Colors</h2>
-            <p>Each FragMap represents favorable binding regions for specific chemical functional groups. Negative GFE (Grid Free Energy) values indicate favorable binding.</p>
+            <p>Each FragMap represents favorable binding regions for specific chemical functional groups. Negative GFE (Grid Free Energy) values indicate favorable binding — for example, an iso-value of <strong>-1.2 kcal/mol</strong> highlights regions where a functional group gains significant binding energy. More negative values represent stronger, more localized hotspots. The exclusion map (EXCL) uses positive values to mark regions sterically inaccessible to ligands.</p>
             
             <div class="fragmap-legend">
                 <div class="legend-item">
@@ -314,6 +314,25 @@
 
     <!-- How to Use -->
     <section class="content-section">
+        <div class="content-container">
+            <h2 class="section-title">Interpreting FragMaps</h2>
+            
+            <div class="info-grid">
+                <div class="info-card">
+                    <h3>🎯 What to Look For</h3>
+                    <p>Toggle on HBDON (blue) and HBACC (red) maps in the binding site — you should see donor/acceptor hotspots near the hinge region where most kinase inhibitors form key hydrogen bonds. The APOLAR (green) map should show hydrophobic density in the back pocket, aligning with the aromatic/hydrophobic portions of the ligands.</p>
+                </div>
+                
+                <div class="info-card">
+                    <h3>🔍 Iso-value Guidance</h3>
+                    <p>Start with iso-values around <strong>-1.0 to -1.5 kcal/mol</strong> for GFE maps. Lower (more negative) thresholds show only the strongest hotspots. Raising the iso-value reveals broader, weaker interaction regions. For the EXCL map, higher positive values (e.g., +0.5) mark areas where ligand atoms cannot be placed due to steric clashes with the protein.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How to Use -->
+    <section class="features-section">
         <div class="content-container">
             <h2 class="section-title">How to Use the Viewer</h2>
             

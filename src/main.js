@@ -1,6 +1,5 @@
 /**
- * SILCS FragMaps Viewer - Main Application Entry Point
- * This is where everything starts when the page loads
+ * SILCS FragMaps Viewer - Application Entry Point
  */
 
 import { MolecularViewer } from './components/Viewer.js';
@@ -13,7 +12,7 @@ import { showError, showSuccess, showInfo } from './utils/errorHandler.js';
 let viewer = null;
 
 /**
- * Wait for 3Dmol.js library to load
+ * Poll for 3Dmol.js CDN availability before initializing
  */
 function wait3Dmol() {
     return new Promise((resolve, reject) => {
@@ -37,44 +36,30 @@ function wait3Dmol() {
 
 // Wait for page to fully load before initializing
 document.addEventListener('DOMContentLoaded', async () => {
-    console.log('🚀 Initializing SILCS FragMaps Viewer...');
-
     try {
-        // Wait for 3Dmol.js to be available
         await wait3Dmol();
-        console.log('✅ 3Dmol.js library loaded');
         
-        // Initialize the 3D viewer
-        viewer = new MolecularViewer('molstar-viewer');
+        viewer = new MolecularViewer('viewer-container');
         await viewer.initialize();
-        
-        // Load the protein structure
-        console.log('📦 Loading p38 MAP Kinase structure...');
         await viewer.loadProtein('from_silcsbio/3fly.pdb');
         
-        // Build UI components
         setupTabs();
         populateLigandSelector();
         buildFragMapControls();
-        
-        // Initialize controls
         setupControls(viewer);
         setupFragMapControls(viewer);
         
         showSuccess('Viewer initialized successfully!');
-        console.log('✅ Viewer initialized successfully!');
-        
     } catch (error) {
-        console.error('❌ Failed to initialize viewer:', error);
+        console.error('Failed to initialize viewer:', error);
         showError('Failed to load molecular viewer. Please refresh the page.', 0);
     }
 });
 
 /**
- * Setup UI controls and event listeners
+ * Bind UI controls to viewer actions
  */
 function setupControls(viewer) {
-    // Ligand selector dropdown
     const ligandSelect = document.getElementById('ligandSelect');
     ligandSelect?.addEventListener('change', async (e) => {
         const ligandFile = e.target.value;
@@ -85,20 +70,12 @@ function setupControls(viewer) {
                 await viewer.loadLigand(ligandFile);
                 updateLigandInfo(ligandName);
                 showSuccess(`Loaded ${ligandName}`);
-                console.log(`✅ Ligand loaded: ${ligandName}`);
             } catch (error) {
-                console.error('❌ Failed to load ligand:', error);
+                console.error('Failed to load ligand:', error);
                 showError('Failed to load ligand. Please try another one.');
-                e.target.selectedIndex = 0; // Reset to default
-                alert('Failed to load ligand. Please try another one.');
+                e.target.selectedIndex = 0;
             }
         }
-    });
-    
-    // FragMap control buttons
-    document.getElementById('hideAllMaps')?.addEventListener('click', () => {
-        console.log('Hide all maps clicked');
-        // We'll implement this when we add FragMaps
     });
     
     document.getElementById('resetView')?.addEventListener('click', () => {
@@ -109,7 +86,7 @@ function setupControls(viewer) {
         viewer.focusBindingSite();
     });
     
-    // Protein display controls
+    // Protein display
     document.getElementById('showCartoon')?.addEventListener('change', (e) => {
         viewer.toggleCartoon(e.target.checked);
     });
@@ -117,27 +94,43 @@ function setupControls(viewer) {
     document.getElementById('showSurface')?.addEventListener('change', (e) => {
         viewer.toggleSurface(e.target.checked);
     });
+
+    document.getElementById('showBackbone')?.addEventListener('change', (e) => {
+        viewer.toggleBackbone(e.target.checked);
+    });
+
+    // Ligand display style
+    document.getElementById('showLigandSticks')?.addEventListener('change', (e) => {
+        if (e.target.checked) {
+            document.getElementById('showLigandBalls').checked = false;
+            viewer.setLigandStyle('stick');
+        }
+    });
+
+    document.getElementById('showLigandBalls')?.addEventListener('change', (e) => {
+        if (e.target.checked) {
+            document.getElementById('showLigandSticks').checked = false;
+            viewer.setLigandStyle('ballAndStick');
+        }
+    });
     
-    // Export image button
+    // Export
     document.getElementById('exportImage')?.addEventListener('click', () => {
         viewer.exportImage();
     });
 }
 
 /**
- * Setup FragMap controls - toggles and sliders
+ * Wire up FragMap toggle switches and iso-value sliders
  */
 function setupFragMapControls(viewer) {
-    // Setup each FragMap control
     FRAGMAPS.forEach(fragmap => {
-        // Toggle checkbox
         const toggle = document.getElementById(`toggle-${fragmap.id}`);
         toggle?.addEventListener('change', async (e) => {
             const isVisible = e.target.checked;
             try {
                 if (isVisible) {
-                    showInfo(`Loading ${fragmap.name} FragMap...`);
-                    // Load and show FragMap
+                    // Load and display FragMap isosurface
                     await viewer.loadFragMap(
                         fragmap.id,
                         fragmap.file,
@@ -146,17 +139,15 @@ function setupFragMapControls(viewer) {
                     );
                     showSuccess(`${fragmap.name} FragMap loaded`);
                 } else {
-                    // Hide FragMap
                     viewer.toggleFragMap(fragmap.id, false);
                 }
             } catch (error) {
                 console.error(`Failed to toggle FragMap ${fragmap.id}:`, error);
                 showError(`Failed to load ${fragmap.name} FragMap`);
-                e.target.checked = false; // Revert toggle on error
+                e.target.checked = false;
             }
         });
 
-        // Iso-value slider
         const slider = document.getElementById(`slider-${fragmap.id}`);
         const valueDisplay = document.getElementById(`isovalue-${fragmap.id}`);
         

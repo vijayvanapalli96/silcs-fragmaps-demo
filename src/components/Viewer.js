@@ -1,6 +1,6 @@
 /**
- * Molecular Viewer Component using Mol*
- * Handles all 3D visualization of protein, ligands, and FragMaps
+ * Molecular Viewer Component
+ * Renders protein structure, ligands, and SILCS FragMap isosurfaces using 3Dmol.js
  */
 
 import { DXParser } from '../utils/dxParser.js';
@@ -8,76 +8,65 @@ import { DXParser } from '../utils/dxParser.js';
 export class MolecularViewer {
     constructor(containerId) {
         this.containerId = containerId;
-        this.plugin = null;
-        this.viewer3d = null; // 3Dmol for FragMaps
-        this.proteinRef = null;
+        this.viewer3d = null;
+        this.proteinModel = null;
         this.ligandRef = null;
-        this.fragMaps = new Map(); // Store FragMap references
-        this.fragMapData = new Map(); // Store parsed DX data
+        this.ligandModel = null;
+        this.surfaceVisible = false;
+        this.surfaceId = null;
+        this.fragMaps = new Map();
     }
 
-    /**
-     * Initialize Mol* viewer instance
-     */
+    /** Create and configure the 3Dmol.js viewer instance */
     async initialize() {
         const container = document.getElementById(this.containerId);
         if (!container) {
             throw new Error(`Container ${this.containerId} not found`);
         }
 
-        console.log('🔧 Creating 3Dmol viewer...');
-
-        // Use 3Dmol.js for everything (protein + FragMaps)
         this.viewer3d = window.$3Dmol.createViewer(container, {
             backgroundColor: 'white',
             antialias: true
         });
 
-        console.log('✅ 3Dmol viewer created successfully');
         this.hideLoading();
-        
         return this.viewer3d;
     }
 
     async loadProtein(pdbPath) {
         try {
-            console.log(`📂 Loading PDB from: ${pdbPath}`);
-            
-            // Load PDB using 3Dmol
             const response = await fetch(pdbPath);
             const pdbData = await response.text();
             
-            this.viewer3d.addModel(pdbData, 'pdb');
-            this.viewer3d.setStyle({}, {cartoon: {color: 'spectrum'}});
+            this.proteinModel = this.viewer3d.addModel(pdbData, 'pdb');
+            this.viewer3d.setStyle({model: this.proteinModel}, {cartoon: {color: 'spectrum'}});
             this.viewer3d.zoomTo();
             this.viewer3d.render();
-            
-            this.proteinRef = true;
-            console.log('✅ Protein loaded successfully');
             return true;
         } catch (error) {
-            console.error('❌ Error loading protein:', error);
+            console.error('Error loading protein:', error);
             throw error;
         }
     }
 
     async loadLigand(sdfPath) {
         try {
-            console.log(`💊 Loading ligand from: ${sdfPath}`);
+            // Remove previous ligand if one is loaded
+            if (this.ligandRef && this.ligandModel) {
+                this.viewer3d.removeModel(this.ligandModel);
+            }
 
-            // Load SDF using 3Dmol
             const response = await fetch(sdfPath);
             const sdfData = await response.text();
             
-            this.viewer3d.addModel(sdfData, 'sdf');
-            this.viewer3d.setStyle({model: -1}, {stick: {colorscheme: 'greenCarbon'}});
+            this.ligandModel = this.viewer3d.addModel(sdfData, 'sdf');
+            this.ligandModel.setStyle({}, {stick: {colorscheme: 'greenCarbon'}});
             this.viewer3d.render();
             
             this.ligandRef = true;
-            console.log('✅ Ligand loaded successfully');
             return true;
         } catch (error) {
-            console.error('❌ Error loading ligand:', error);
+            console.error('Error loading ligand:', error);
             throw error;
         }
     }
@@ -93,59 +82,70 @@ export class MolecularViewer {
         if (this.ligandRef && this.viewer3d) {
             this.viewer3d.zoomTo({model: -1});
             this.viewer3d.render();
-        } else {
-            console.warn('No ligand loaded to focus on');
         }
     }
 
-    async toggleCartoon(show) {
-        if (this.viewer3d) {
-            this.viewer3d.setStyle({}, {cartoon: {color: 'spectrum', hidden: !show}});
+    toggleCartoon(show) {
+        if (this.viewer3d && this.proteinModel) {
+            this.proteinModel.setStyle({}, {cartoon: {color: 'spectrum', hidden: !show}});
             this.viewer3d.render();
         }
-        console.log(`Cartoon visibility: ${show}`);
     }
 
-    async toggleSurface(show) {
+    toggleSurface(show) {
         if (this.viewer3d) {
             if (show) {
-                this.viewer3d.addSurface(window.$3Dmol.SurfaceType.VDW, {opacity: 0.5, color: 'white'});
+                this.surfaceId = this.viewer3d.addSurface(window.$3Dmol.SurfaceType.VDW, 
+                    {opacity: 0.5, color: 'white'}, {model: 0});
+            } else if (this.surfaceId !== null) {
+                this.viewer3d.removeSurface(this.surfaceId);
+                this.surfaceId = null;
+            }
+            this.surfaceVisible = show;
+            this.viewer3d.render();
+        }
+    }
+
+    toggleBackbone(show) {
+        if (this.viewer3d) {
+            if (show) {
+                this.viewer3d.addStyle({atom: ['CA', 'C', 'N', 'O']}, {line: {color: '#888888'}});
             } else {
-                this.viewer3d.removeAllSurfaces();
+                this.viewer3d.removeStyle({atom: ['CA', 'C', 'N', 'O']}, {line: {}});
             }
             this.viewer3d.render();
         }
-        console.log(`Surface visibility: ${show}`);
+    }
+
+    setLigandStyle(style) {
+        if (!this.ligandModel || !this.viewer3d) return;
+        
+        const styles = {
+            stick: {stick: {colorscheme: 'greenCarbon'}},
+            ballAndStick: {stick: {colorscheme: 'greenCarbon'}, sphere: {scale: 0.3, colorscheme: 'greenCarbon'}},
+            sphere: {sphere: {colorscheme: 'greenCarbon'}}
+        };
+        
+        this.ligandModel.setStyle({}, styles[style] || styles.stick);
+        this.viewer3d.render();
     }
 
     async loadFragMap(fragmapId, dxPath, color, isoValue) {
         try {
-            console.log(`🗺️  Loading FragMap ${fragmapId} from ${dxPath}`);
-            
-            // Fetch and parse DX file
             const dxData = await DXParser.load(dxPath);
-            this.fragMapData.set(fragmapId, dxData);
             
-            if (!this.viewer3d) {
-                console.warn('3Dmol viewer not available');
-                return dxData;
-            }
+            if (!this.viewer3d) return dxData;
             
-            // Convert DX to CUBE format (3Dmol.js only supports CUBE)
+            // Convert OpenDX to CUBE format for 3Dmol.js
             const cubeText = DXParser.toCUBE(dxData, `FragMap ${fragmapId}`, `SILCS ${fragmapId} map`);
-            console.log(`Converted to CUBE format: ${cubeText.length} chars`);
-            
-            // Create VolumeData from CUBE format
             const voldata = new window.$3Dmol.VolumeData(cubeText, "cube");
             
-            // Add isosurface to viewer
             const shape = this.viewer3d.addIsosurface(voldata, {
                 isoval: isoValue,
                 color: color,
                 opacity: 0.85
             });
             
-            // Store reference
             this.fragMaps.set(fragmapId, {
                 data: dxData,
                 shape: shape,
@@ -155,25 +155,19 @@ export class MolecularViewer {
             });
             
             this.viewer3d.render();
-            console.log(`✅ FragMap ${fragmapId} isosurface rendered`);
-            
             return dxData;
         } catch (error) {
-            console.error(`❌ Error loading FragMap ${fragmapId}:`, error);
+            console.error(`Error loading FragMap ${fragmapId}:`, error);
             throw error;
         }
     }
 
     toggleFragMap(fragmapId, visible) {
-        if (!this.fragMaps.has(fragmapId) || !this.viewer3d) {
-            console.warn(`Cannot toggle FragMap ${fragmapId}: not loaded or viewer unavailable`);
-            return;
-        }
+        if (!this.fragMaps.has(fragmapId) || !this.viewer3d) return;
         
         const fragmap = this.fragMaps.get(fragmapId);
         
         if (visible) {
-            // Show: re-add isosurface if data exists
             if (!fragmap.shape && fragmap.data) {
                 const cubeText = DXParser.toCUBE(fragmap.data, `FragMap ${fragmapId}`, `SILCS ${fragmapId} map`);
                 const voldata = new window.$3Dmol.VolumeData(cubeText, "cube");
@@ -183,15 +177,12 @@ export class MolecularViewer {
                     opacity: 0.85
                 });
                 this.viewer3d.render();
-                console.log(`✅ FragMap ${fragmapId} shown`);
             }
         } else {
-            // Hide: remove shape
             if (fragmap.shape) {
                 this.viewer3d.removeShape(fragmap.shape);
                 fragmap.shape = null;
                 this.viewer3d.render();
-                console.log(`✅ FragMap ${fragmapId} hidden`);
             }
         }
         
@@ -203,7 +194,6 @@ export class MolecularViewer {
             const fragmap = this.fragMaps.get(fragmapId);
             fragmap.isoValue = isoValue;
             
-            // Re-render isosurface with new iso-value if currently visible
             if (fragmap.visible && fragmap.shape && fragmap.data) {
                 this.viewer3d.removeShape(fragmap.shape);
                 
@@ -217,8 +207,6 @@ export class MolecularViewer {
                 
                 this.viewer3d.render();
             }
-            
-            console.log(`🎚️  FragMap ${fragmapId} iso-value: ${isoValue}`);
         }
     }
 
@@ -226,21 +214,15 @@ export class MolecularViewer {
         this.fragMaps.forEach((_, fragmapId) => {
             this.toggleFragMap(fragmapId, false);
         });
-        console.log('🙈 All FragMaps hidden');
     }
 
-    async exportImage() {
-        try {
-            const imageData = await this.plugin.canvas3d?.getImagePass();
-            if (imageData) {
-                const link = document.createElement('a');
-                link.download = 'silcs-fragmaps-view.png';
-                link.href = imageData.imageData;
-                link.click();
-                console.log('📸 Image exported successfully');
-            }
-        } catch (error) {
-            console.error('❌ Error exporting image:', error);
+    exportImage() {
+        if (this.viewer3d) {
+            const imgUri = this.viewer3d.pngURI();
+            const link = document.createElement('a');
+            link.download = 'silcs-fragmaps-view.png';
+            link.href = imgUri;
+            link.click();
         }
     }
 

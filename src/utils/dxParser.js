@@ -1,6 +1,6 @@
 /**
- * DX File Parser for SILCS FragMaps
- * Parses OpenDX format volumetric data files
+ * OpenDX File Parser
+ * Reads SILCS FragMap .dx files and converts to Gaussian CUBE format for 3Dmol.js
  */
 
 export class DXParser {
@@ -73,14 +73,11 @@ export class DXParser {
             }
         }
 
-        console.log(`Parsed DX: ${result.gridCounts?.join('x')} grid, ${result.values.length} values`);
         return result;
     }
 
     /**
-     * Load DX file from URL
-     * @param {string} url - URL to DX file
-     * @returns {Promise<Object>} Parsed DX data
+     * Fetch and parse a remote .dx file
      */
     static async load(url) {
         try {
@@ -97,12 +94,8 @@ export class DXParser {
     }
 
     /**
-     * Convert OpenDX data to Gaussian CUBE format string
-     * 3Dmol.js requires CUBE format for volumetric data
-     * @param {Object} dxData - Parsed DX data from parse()
-     * @param {string} title - Title for CUBE file (comment line 1)
-     * @param {string} description - Description (comment line 2)
-     * @returns {string} CUBE format text
+     * Convert parsed DX data to Gaussian CUBE format string.
+     * 3Dmol.js reads CUBE natively; DX requires this conversion step.
      */
     static toCUBE(dxData, title = "SILCS FragMap", description = "Converted from OpenDX") {
         const { gridCounts, origin, delta, values } = dxData;

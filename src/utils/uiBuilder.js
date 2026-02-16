@@ -1,12 +1,11 @@
 /**
- * UI Builder Utilities
- * Functions to dynamically create UI elements
+ * UI Builder - dynamically generates FragMap controls and ligand selector options
  */
 
 import { FRAGMAPS, LIGANDS } from './config.js';
 
 /**
- * Populate the ligand dropdown with all available ligands
+ * Populate the ligand dropdown from the config list
  */
 export function populateLigandSelector() {
     const select = document.getElementById('ligandSelect');
@@ -24,30 +23,26 @@ export function populateLigandSelector() {
         option.textContent = ligand.name;
         select.appendChild(option);
     });
-
-    console.log(`📋 Populated ligand selector with ${LIGANDS.length} ligands`);
 }
 
 /**
- * Generate FragMap control UI elements
+ * Build toggle + slider controls for each FragMap type
  */
 export function buildFragMapControls() {
     const container = document.getElementById('fragmapControls');
     if (!container) return;
 
-    container.innerHTML = ''; // Clear existing
+    container.innerHTML = '';
 
     FRAGMAPS.forEach(fragmap => {
-        // Create FragMap item container
         const item = document.createElement('div');
         item.className = 'fragmap-item';
         item.dataset.fragmapId = fragmap.id;
 
-        // Header with name and toggle
+        // Header row: color swatch, label, toggle
         const header = document.createElement('div');
         header.className = 'fragmap-header';
         
-        // Name with color indicator
         const nameDiv = document.createElement('div');
         nameDiv.className = 'fragmap-name';
         nameDiv.innerHTML = `
@@ -55,7 +50,6 @@ export function buildFragMapControls() {
             <span>${fragmap.name}</span>
         `;
 
-        // Toggle switch
         const toggle = document.createElement('label');
         toggle.className = 'fragmap-toggle';
         toggle.innerHTML = `
@@ -66,7 +60,6 @@ export function buildFragMapControls() {
         header.appendChild(nameDiv);
         header.appendChild(toggle);
 
-        // Iso-value slider control
         const isoControl = document.createElement('div');
         isoControl.className = 'isovalue-control';
         isoControl.innerHTML = `
@@ -88,8 +81,6 @@ export function buildFragMapControls() {
         item.appendChild(isoControl);
         container.appendChild(item);
     });
-
-    console.log(`🎨 Generated ${FRAGMAPS.length} FragMap controls`);
 }
 
 /**

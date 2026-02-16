@@ -4,10 +4,9 @@
 
 A client-side web application for visualizing P38 MAP Kinase (PDB: 3FLY) protein structure, ligand poses, and SILCS FragMaps using 3Dmol.js.
 
-![SILCS FragMaps Viewer](https://img.shields.io/badge/Status-Production-success)
 ![License](https://img.shields.io/badge/License-MIT-blue)
 
-## 🔬 Scientific Background
+## Scientific Background
 
 ### P38 MAP Kinase
 P38 mitogen-activated protein kinase (p38 MAPK) is a critical enzyme involved in cellular stress responses, inflammation, and immune regulation. It plays a key role in diseases including rheumatoid arthritis, inflammatory bowel disease, and cancer, making it an important drug target.
@@ -22,7 +21,7 @@ FragMaps enable medicinal chemists to:
 - Predict relative binding affinities (LGFE scores)
 - Understand the energetic contributions of different molecular interactions
 
-## 🎯 Features
+## Features
 
 - **Overview Page** - Scientific introduction explaining P38, SILCS, and FragMaps
 - **3D Protein Visualization** - Interactive rendering of p38 MAP Kinase (PDB: 3FLY)
@@ -31,29 +30,38 @@ FragMaps enable medicinal chemists to:
 - **Interactive Controls** - Toggle surfaces, adjust iso-values, zoom to binding site
 - **100% Client-Side** - No backend required, deploy anywhere
 
-## 🌐 Live Demo
+## Live Demo
 
 **Live URL:** [https://vijayvanapalli96.github.io/silcs-fragmaps-demo/overview.html](https://vijayvanapalli96.github.io/silcs-fragmaps-demo/overview.html)
 
-## 🚀 Quick Start
+## Running Locally
 
-### Local Development
+The app uses ES6 modules, so it must be served over HTTP (not `file://`). Clone and start any local server:
+
 ```bash
-# Clone the repository
 git clone https://github.com/vijayvanapalli96/silcs-fragmaps-demo.git
 cd silcs-fragmaps-demo
-
-# Start local server
-python -m http.server 8080
-
-# Open browser to http://localhost:8080/overview.html
 ```
 
-### Pages
-- **`overview.html`** - Introduction & scientific background (start here)
-- **`index.html`** - Interactive 3D viewer
+Then pick one:
 
-## 🎮 Usage Guide
+```bash
+# Python
+python -m http.server 8080
+
+# Node.js (no install needed)
+npx serve .
+
+# VS Code: install "Live Server" extension, right-click overview.html → Open with Live Server
+```
+
+Open `http://localhost:8080/overview.html` (or whichever port your server uses).
+
+### Pages
+- **`overview.html`** — Scientific introduction (start here)
+- **`index.html`** — Interactive 3D viewer
+
+## Usage Guide
 
 ### Navigation
 - Start at the **Overview** page for scientific context
@@ -75,7 +83,7 @@ python -m http.server 8080
 3. Adjust iso-value sliders for threshold
 4. Use "Hide all" to clear all maps
 
-## 📊 FragMap Legend
+## FragMap Legend
 
 | Type | Color | Description |
 |------|-------|-------------|
@@ -88,13 +96,13 @@ python -m http.server 8080
 | TIPO | Yellow | Tert-butyl |
 | EXCL | Grey | Exclusion |
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 - **3Dmol.js** - Molecular visualization library
 - **Vanilla JavaScript** - ES6 modules, no frameworks
 - **HTML5/CSS3** - Modern, responsive design
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 silcs-fragmaps-demo/
@@ -117,20 +125,30 @@ silcs-fragmaps-demo/
 └── from_silcsbio/
     ├── 3fly.pdb            # Protein structure
     ├── 3fly_cryst_lig*.sdf # Crystal ligand
-    ├── ligands_posref/     # 30 refined ligand poses
+    ├── ligands_posref/     # 30 SILCS-MC refined ligand poses
     └── maps/               # 8 FragMap DX files
 ```
 
-## 🎨 Design Decisions
+## Design Decisions & Tradeoffs
 
-1. **3Dmol.js over Mol*** - Chose 3Dmol.js for better volumetric data (FragMap) support
-2. **No Build Step** - Pure ES6 modules for simplicity and easy deployment
-3. **Two-Page Design** - Separate overview and viewer for clear navigation
-4. **Dynamic UI** - FragMap controls generated from config for easy extensibility
+**3Dmol.js instead of Mol\*** — Mol* is more full-featured for structural biology, but 3Dmol.js has a simpler API for adding isosurfaces from volumetric data, which is the core requirement for FragMap visualization. The tradeoff is that 3Dmol.js does not natively read OpenDX files, so a custom DX → Gaussian CUBE converter (`dxParser.js`) was needed.
 
-## 📝 License
+**No build step / no framework** — The app ships as plain ES6 modules with no bundler, transpiler, or npm dependencies. This makes deployment trivial (just copy files to any static host) and keeps the repo easy to review. The tradeoff is no minification, no tree-shaking, and no TypeScript type-checking.
 
-MIT License - see [LICENSE](LICENSE)
+**DX → CUBE conversion** — 3Dmol.js only accepts CUBE-format volumetric data. Rather than pre-converting the `.dx` files offline, the parser converts on-the-fly in the browser. This keeps the original SilcsBio data files untouched but adds ~100 ms of parsing overhead per FragMap.
+
+**Two-page layout** — A separate overview page provides scientific context before the viewer. This mirrors the SilcsBio website pattern and keeps the viewer page focused on the 3D canvas. A single-page approach with a modal or collapsible panel would also work but felt more cluttered for a demo.
+
+**Iso-value sliders re-render the full isosurface** — 3Dmol.js does not support updating an isosurface threshold in place, so changing the slider removes and re-adds the surface. This can cause a brief flicker on large maps but is acceptable for a prototype.
+
+## License
+
+MIT License — see [LICENSE](LICENSE)
+
+## Links
+
+- **Repository:** [github.com/vijayvanapalli96/silcs-fragmaps-demo](https://github.com/vijayvanapalli96/silcs-fragmaps-demo)
+- **Live Demo:** [vijayvanapalli96.github.io/silcs-fragmaps-demo/overview.html](https://vijayvanapalli96.github.io/silcs-fragmaps-demo/overview.html)
 
 ---
-**Built for the SilcsBio Candidate Exercise** 💙
+Built for the SilcsBio Candidate Exercise

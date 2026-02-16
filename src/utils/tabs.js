@@ -1,6 +1,5 @@
 /**
- * Tab Navigation Utility
- * Handles switching between FragMap, Protein, and Ligand tabs
+ * Tab Navigation - switches between FragMap, Protein, and Ligand panels
  */
 
 export function setupTabs() {
@@ -22,7 +21,6 @@ export function setupTabs() {
                 targetPane.classList.add('active');
             }
             
-            console.log(`Switched to ${targetTab} tab`);
         });
     });
 }

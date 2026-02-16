@@ -1,6 +1,5 @@
 /**
- * Error Handling Utilities
- * Production-grade error handling and user notifications
+ * Notification helpers for user-facing status messages
  */
 
 /**
